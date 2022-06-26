@@ -86,15 +86,17 @@ class StoryList {
   
   //remove story
   async removeStory(user, storyId) {
-    const token = user.loginToken;
+    //const token = user.loginToken;
     await axios({
       url: `${BASE_URL}/stories/${storyId}`,
       method: "DELETE",
       data: { token: user.loginToken }
     });
 
-
-    
+    //retrieve storyList without the deleted storyIDs, from all 3 arrays
+    this.stories = this.stories.filter(story => story.storyId !== storyId);
+    user.ownStories = user.ownStories.filter(s => s.storyId !== storyId);
+    user.favorites = user.favorites.filter(s => s.storyId !== storyId);
   }
 
 
@@ -232,7 +234,18 @@ class User {
     }
   }
 
+  //add and remove to favorites
+    async addFav(story) {
+      let token = this.loginToken;
+      this.favorites.push(story);
+      await axios.post(`${BASE_URL}/users/${this.username}/favorites/${story.storyId}`, { token });
+    }
   
+    async removeFav(story) {
+      let token = this.loginToken;
+      this.favorites = this.favorites.filter(s => s.storyId !== story.storyId);
+      await axios.delete(`${BASE_URL}/users/${this.username}/favorites/${story.storyId}`, { token });
+    }
 
 }
 

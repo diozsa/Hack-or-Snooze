@@ -19,13 +19,16 @@ async function getAndShowStoriesOnStart() {
  * Returns the markup for the story.
  */
 
-function generateStoryMarkup(story) {
-   console.debug("generateStoryMarkup", story);
-
+function generateStoryMarkup(story, delButton = false) {
+  console.debug("generateStoryMarkup", story);
+  let $delButton;
   const hostName = story.getHostName();
+  if(delButton) $delButton = '<span><button> delete </button></span>';
+    else $delButton = '';
+  
   return $(`
-      <li id="${story.storyId}">
-      <span><button> delete </button></span>
+      <li id="${story.storyId}"><input type= 'checkbox'>
+        ${$delButton}
         <a href="${story.url}" target="a_blank" class="story-link">
           ${story.title}
         </a>
@@ -72,17 +75,14 @@ $submitForm.on("submit", submitStory);
 
 //delete a story
 async function deleteStory(evt) {
-  //console.debug("deleteStory");
-
-  //const $closestLi = $(evt.target).closest("li");
+    //const $closestLi = $(evt.target).closest("li");
   const storyId = $(evt.target).closest('li').attr("id");
   $(evt.target).closest('li').remove();
-  //await storyList.removeStory(currentUser, storyId);        to be further used in API
-
-  // pull story list from API
-  addUserStoriesOnPage();
+  await storyList.removeStory(currentUser, storyId);
+  
+  addUserStoriesOnPage();   // pulls updated story list from API
 }
-$ownStories.on("click", deleteStory);
+$ownStories.on("click", "button", deleteStory);
 
 
 
@@ -104,6 +104,7 @@ function addFavoritesOnPage() {
 
   $favoriteStories.show();
   $ownStories.hide();
+  $submitForm.hide();
 }
 
 
@@ -126,4 +127,20 @@ function addUserStoriesOnPage() {
 
  $ownStories.show();
  $favoriteStories.hide();
+ $submitForm.hide();
+
 }
+
+async function toggleFav(e){
+  
+  console.debug('toggleFav');
+  const target = $(e.target);
+  const storyId = target.closest('li').attr("id");
+  const story = storyList.stories.find(story => story.storyId === storyId);
+
+  if(target.is(':checked')) {
+    await currentUser.addFav(story);
+  }
+  else await currentUser.removeFav(story);
+}
+$(".stories-list").on("click", ':checkbox', toggleFav);
