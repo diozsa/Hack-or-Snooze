@@ -167,7 +167,6 @@ class User {
     alert('Username already taken');
     console.error("username duplicate", err)
     $signupForm.trigger("reset");
-
   }
   }
 
@@ -200,7 +199,6 @@ class User {
   } catch{
     alert('Incorrect credentials - Verify username or password');
     $loginForm.trigger("reset");
-    
   }
   }
 
@@ -237,8 +235,11 @@ class User {
   //add and remove to favorites
     async addFav(story) {
       let token = this.loginToken;
-      this.favorites.push(story);
-      await axios.post(`${BASE_URL}/users/${this.username}/favorites/${story.storyId}`, { token });
+      if(this.favorites.filter(s => s.storyId !== story.storyId)){
+        this.favorites.push(story);
+        await axios.post(`${BASE_URL}/users/${this.username}/favorites/${story.storyId}`, { token });
+      }
+  
     }
   
     async removeFav(story) {

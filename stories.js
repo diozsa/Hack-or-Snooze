@@ -19,15 +19,17 @@ async function getAndShowStoriesOnStart() {
  * Returns the markup for the story.
  */
 
-function generateStoryMarkup(story, delButton = false) {
+function generateStoryMarkup(story, delButton = false, fav = false) {
   console.debug("generateStoryMarkup", story);
-  let $delButton;
+  let $delButton, $fav;
   const hostName = story.getHostName();
+  if(fav) $fav = 'checked';
+    else $fav = '';
   if(delButton) $delButton = '<span><button> delete </button></span>';
     else $delButton = '';
   
   return $(`
-      <li id="${story.storyId}"><input type= 'checkbox'>
+      <li id="${story.storyId}"><input type= 'checkbox' ${$fav}>
         ${$delButton}
         <a href="${story.url}" target="a_blank" class="story-link">
           ${story.title}
@@ -97,7 +99,7 @@ function addFavoritesOnPage() {
   } else {
     // loop through all of users favorites and generate HTML for them
     for (let story of currentUser.favorites) {
-      const $story = generateStoryMarkup(story);
+      const $story = generateStoryMarkup(story,false, true);
       $favoriteStories.append($story);
     }
   }
@@ -111,17 +113,19 @@ function addFavoritesOnPage() {
 // adds user's own stories
 
 function addUserStoriesOnPage() {
- console.debug("addUserStoriesOnPage");
+  console.debug("addUserStoriesOnPage");
 
- $ownStories.empty();
-
- if (currentUser.ownStories.length === 0) {
+  $ownStories.empty();
+  let fav = false;
+  if (currentUser.ownStories.length === 0) {
    $ownStories.append("No stories added yet...");
- } else {
+  } else {
    // loop through all of users stories and generate HTML for them
    for (let story of currentUser.ownStories) {
-     let $story = generateStoryMarkup(story, true);
-     $ownStories.append($story);
+    let id = currentUser.favorites.filter(s => s.storyId == story.storyId)
+    if(story.storyId === id.storyId) fav = true
+    let $story = generateStoryMarkup(story, true, fav);
+    $ownStories.append($story);
    }
  }
 
